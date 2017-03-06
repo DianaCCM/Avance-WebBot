@@ -1,0 +1,4 @@
+{'_id': ObjectId('58bc7f6e4fa99106dc55271e'), 'Accion': 'Aprender cocinar', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar  5 15:13:18 2017'} FIN 
+{'_id': ObjectId('58bc7f704fa99106dc552720'), 'Accion': 'Aprender bailar', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar  5 15:13:20 2017'} FIN 
+{'_id': ObjectId('58bc7f804fa99106dc552722'), 'Accion': 'Aprender bailar', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar  5 15:13:36 2017'} FIN 
+{'_id': ObjectId('58bc7f8d4fa99106dc552724'), 'Accion': 'Mostrar estados (LOG)', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar  5 15:13:49 2017'} FIN 
