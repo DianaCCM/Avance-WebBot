@@ -20,7 +20,7 @@ ram = db.memRam  # Dentro de GrootBot, crear la colección memRam
 def info(name):  # Muestra "datos personales" del web-bot
 
     fechaNac = time.strftime("%c")
-    bot_id = hash(fechaNac)
+    bot_id = hash(fechaNac) #Generar hash a partir de la fecha y asignarlo como ID del bot
     creadora = "DianaCM"
 
     return "¡Hola, mi nombres es " + name + "! Soy un web-bot... " \
@@ -90,59 +90,65 @@ def divide(num1, num2):  # Método para dividir dos numeros recibidos anteriorme
 
 @app.route('/api/web-bot/aprender', methods=['POST'])
 def aprende():
-    action = request.json["action"]
-    codigo = request.json["code"]  # Seleccionar en el Json lo que contiene la clave code
+    action = request.json["action"] # Seleccionar en el Json lo que contiene la clave action
+    codigo = request.json["code"]   # Seleccionar en el Json lo que contiene la clave code
 
     resultado = {'He aprendido a ': action}  # Respuesta Json
-    codificar = json.dumps(resultado)
+    codifica = json.dumps(resultado) #codificar resultado para respuesta
 
-    resp = Response(codificar, status=200, content_type='application/json')  # Configuración de la respuesta
+    resp = Response(codifica, status=200, content_type='application/json')  # Configuración de la respuesta
     resp.headers['Link'] = "www.GrootBot.com"
 
-    accion = ("Aprender " + action)
+    accion = ("Aprender " + action) #Acción que será guardada en log
     guardar(accion)  # Ir al método guardar para almacenar la información en historial
 
+    #Lista de Objetos (contendrá códigos a ejecutar)
     accionGuardar =[
         RAM(codigo)
     ]
 
-    for insertar in accionGuardar:
+    for insertar in accionGuardar: #Ciclo para ir insertando los objetos a la coleccion RAM
        ram.insert(insertar.toMemRam())
        exec(codigo)  #Ejecutar código recibido
 
     return resp
 
+
 @app.route('/api/web-bot/mostrar/estados')
 def muestra_estados():  # Método para mostrar historial
 
-    accion = "Mostrar estados (LOG)"
+    accion = "Mostrar estados (LOG)" #Acción que se almacenará en log
     guardar(accion)
 
-    archEscritura = open('log.txt', 'w')
-    for cursor in log.find({}):
-        archEscritura.write(str(cursor) + " FIN \n")
+    archEscritura = open('log.txt', 'w') # Abrir archivo .txt para escribir
+    for cursor in log.find({}): #Recorrer lo que hay en log
+        archEscritura.write(str(cursor) + " FIN \n") # Se escriben todos los datos del log en un archivo txt
 
-    archEscritura.close()
-    archLectura = open('log.txt', 'r')
-    obtener = archLectura.read()
-    archLectura.close()
+    archEscritura.close() #Cerrar archivo
+    archLectura = open('log.txt', 'r')# Abrir archivo .txt para leer
+    obtener = archLectura.read() #Leer
+    archLectura.close() #Cerrarlo
+
+    # Como respuesta a petición, se envía lo leído en el .txt
     return obtener
 
 
 @app.route('/api/web-bot/mostrar/conocimientos')
 def muestra_memoria():  # Método para mostrar lo que hay en RAM
 
-    accion = "Mostrar conocimientos (RAM)"
+    accion = "Mostrar conocimientos (RAM)" #Acción que se almacenará en log
     guardar(accion)
 
-    archEscritura = open('ram.txt', 'w')
-    for cursor in db.memRam.find({}):
-        archEscritura.write(str(cursor) + " FIN \n")
+    archEscritura = open('ram.txt', 'w') #Abrir archivo .txt para escribir
+    for cursor in db.memRam.find({}): #Recorrer lo que hay en ram
+        archEscritura.write(str(cursor) + " FIN \n") # Se escriben todos los datos del log en un archivo txt
 
-    archEscritura.close()
-    archLectura = open('ram.txt', 'r')
+    archEscritura.close() #Cerrar archivo
+    archLectura = open('ram.txt', 'r') #Abrir archivo .txt para leer
     obtener = archLectura.read()
     archLectura.close()
+
+    # Como respuesta a petición, se envía lo leído en el .txt
     return obtener
 
 
@@ -156,10 +162,11 @@ def borra():
 
     resp = Response('Eliminado', status=200, content_type='application/json')
 
-    # accion = "Desaprender "+ str(ObjectId())
+    # accion = "Desaprender "+ str(ObjectId())  #Acción que se almacenará en log
     # guardar(accion)
 
     return resp
+
 
 def guardar(accion):
     fecha = time.strftime("%c")  # Obtener fecha y hora en que se realizó la accion
