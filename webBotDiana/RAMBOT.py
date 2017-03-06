@@ -1,10 +1,7 @@
-class RAM:
+class RAM: #Clase para organizar RAM
 
     def __init__(self, codigo):
         self.codigo = codigo
 
-    def toMemRam (self):
+    def toMemRam (self): #Se retorna en formato Json lo que será guardado en la colección
         return { "codigo":self.codigo }
-
-    def __str__(self):
-        return "codigo: " %(self.codigo)
