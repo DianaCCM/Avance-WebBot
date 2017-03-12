@@ -1,26 +1,29 @@
-# Módulos necesarios para el desarrollo del programa
+# Módulos necesarios para el desarrollo
 from bson.objectid import ObjectId
 from flask import Flask, request, json, Response
 import time
 from pymongo import MongoClient
 import socket
 from RAMBOT import RAM
+from quickstart import main
 
 # Inicialización de Flask
 app = Flask(__name__)
 
-con = MongoClient('127.0.0.1', 27017)  # Conectar con MongoDB (localhost, puerto)
+conexionMongo = MongoClient('127.0.0.1', 27017)  # Conectar con MongoDB (localhost, puerto)
 
-db = con.GrootBot  # Definir Base de datos GrootBot
-log = db.logHist  # Dentro de GrootBot, crear la colección logHist
-ram = db.memRam  # Dentro de GrootBot, crear la colección memRam
+baseDatos = conexionMongo.WebBotDB  # Definir Base de datos
+log = baseDatos.LOG  # Dentro de WebBotDB, crear la colección lOG
+ram = baseDatos.RAM  # Dentro de WebBotDB, crear la colección RAM
+
 
 # (con botón solo debe correr una vez)
-@app.route('/api/web-bot/<name>', methods=['PUT'])
-def info(name):  # Muestra "datos personales" del web-bot
+@app.route('/api/web-bot/<name>', methods=['GET'])
+def informacionGeneral(name):  # Muestra "datos personales" del web-bot
 
-    fechaNac = time.strftime("%c")
-    bot_id = hash(fechaNac) #Generar hash a partir de la fecha y asignarlo como ID del bot
+    fechaNac = time.strftime("%c")  # módulo time importado para tomar fecha y hora del equipo
+    valorParaId = hash(fechaNac)  # Generar hash a partir de la fecha
+    bot_id = abs(valorParaId)  # Valor absoluto del hash anterior asignado como ID del bot
     creadora = "DianaCM"
 
     return "¡Hola, mi nombres es " + name + "! Soy un web-bot... " \
@@ -29,23 +32,24 @@ def info(name):  # Muestra "datos personales" del web-bot
            ". Mi creadora es: " + creadora
 
 
-# load es para decodificar
-@app.route('/api/web-bot', methods=['POST'])  # Ruta para lo que el bot sabe hacer
+@app.route('/api/web-bot/default', methods=['POST'])  # Ruta para lo que el bot sabe hacer
 def default():  # Lo que el bot hace por defecto desde que inicia
     try:
-        tipo = request.json["tipo"]  # Seleccionar en el Json lo que contiene la clave tipo
+        tipoOperacion = request.json["tipo"]  # Seleccionar en el Json lo que contiene la clave tipo
+        # Tipo A es para sumas y multiplicaciones, B para restas y divisiones
+
         operacion = request.json['operacion']  # Seleccionar en el Json lo que contiene la clave operación
 
         # Tipo "A" es para operaciones con más de dos números (sumas y multiplicaciones)
-        if (tipo == "A"):
+        if (tipoOperacion == "A"):
             numeros = request.json['numeros']  # Seleccionar en el Json lo que contiene la clave numeros
             if (operacion == "suma"):  # Si la operación es suma, ingresa al método de suma
                 total = suma(numeros)
             if (operacion == "multiplica"):  # Si la operación es suma, ingresa al método de multiplica
                 total = multiplica(numeros)
 
-                # Tipo "B" es para operaciones  de dos números (restas y divisiones)
-        if (tipo == "B"):
+        # Tipo "B" es para operaciones  de dos números (restas y divisiones)
+        if (tipoOperacion == "B"):
             num1 = request.json['num1']  # Seleccionar en el Json lo que contiene la clave num1
             num2 = request.json['num2']  # Seleccionar en el Json lo que contiene la clave num2
             if (operacion == "resta"):  # Si la operación es suma, ingresa al método de resta
@@ -53,10 +57,10 @@ def default():  # Lo que el bot hace por defecto desde que inicia
             if (operacion == "divide"):  # Si la operación es suma, ingresa al método de divide
                 total = divide(num1, num2)
 
-        operacion = {"Resultado ": total}  # Resulato
+        operacion = {"Resultado ": total}  # Resultado
 
     except Exception as e:  # Excepción en caso de que lo anterior no funcione
-        print(e)
+        print("Imposible" % str(e))
 
     js = json.dumps(operacion)  # Codificar Json
     resp = Response(js, content_type='application/json')
@@ -90,44 +94,58 @@ def divide(num1, num2):  # Método para dividir dos numeros recibidos anteriorme
 
 @app.route('/api/web-bot/aprender', methods=['POST'])
 def aprende():
-    action = request.json["action"] # Seleccionar en el Json lo que contiene la clave action
-    codigo = request.json["code"]   # Seleccionar en el Json lo que contiene la clave code
+    action = request.json["action"]  # Seleccionar en el Json lo que contiene la clave action
+    codigo = request.json["code"]  # Seleccionar en el Json lo que contiene la clave code
 
     resultado = {'He aprendido a ': action}  # Respuesta Json
-    codifica = json.dumps(resultado) #codificar resultado para respuesta
+    codifica = json.dumps(resultado)  # codificar resultado para respuesta
 
     resp = Response(codifica, status=200, content_type='application/json')  # Configuración de la respuesta
     resp.headers['Link'] = "www.GrootBot.com"
 
-    accion = ("Aprender " + action) #Acción que será guardada en log
+    accion = ("Aprender " + action)  # Acción que será guardada en log
     guardar(accion)  # Ir al método guardar para almacenar la información en historial
 
-    #Lista de Objetos (contendrá códigos a ejecutar)
-    accionGuardar =[
+    # Lista de Objetos (contendrá códigos a ejecutar)
+    accionGuardar = [
         RAM(codigo)
     ]
 
-    for insertar in accionGuardar: #Ciclo para ir insertando los objetos a la coleccion RAM
-       ram.insert(insertar.toMemRam())
-       exec(codigo)  #Ejecutar código recibido
+    for insertar in accionGuardar:  # Ciclo para ir insertando los objetos a la coleccion RAM
+        ram.insert(insertar.toRAM())
+        exec(codigo)  # Ejecutar código recibido
 
     return resp
+
+
+@app.route('/api/web-bot/calendario', methods=['GET'])
+def calendarioGoogle():
+    exec(str(main()))
+
+    archLectura = open('events.txt', 'r')  # Abrir archivo .txt para leer
+    obtener = archLectura.read()  # Leer
+    archLectura.close()  # Cerrarlo
+
+    accion = "Uso de API "  # Acción que se almacenará en log
+    guardar(accion)
+
+    return obtener
 
 
 @app.route('/api/web-bot/mostrar/estados')
 def muestra_estados():  # Método para mostrar historial
 
-    accion = "Mostrar estados (LOG)" #Acción que se almacenará en log
+    accion = "Mostrar estados (LOG)"  # Acción que se almacenará en log
     guardar(accion)
 
-    archEscritura = open('log.txt', 'w') # Abrir archivo .txt para escribir
-    for cursor in log.find({}): #Recorrer lo que hay en log
-        archEscritura.write(str(cursor) + " FIN \n") # Se escriben todos los datos del log en un archivo txt
+    archEscritura = open('log.txt', 'w')  # Abrir archivo .txt para escribir
+    for cursor in log.find({}):  # Recorrer lo que hay en log
+        archEscritura.write(str(cursor) + " FIN \n")  # Se escriben todos los datos del log en un archivo txt
 
-    archEscritura.close() #Cerrar archivo
-    archLectura = open('log.txt', 'r')# Abrir archivo .txt para leer
-    obtener = archLectura.read() #Leer
-    archLectura.close() #Cerrarlo
+    archEscritura.close()  # Cerrar archivo
+    archLectura = open('log.txt', 'r')  # Abrir archivo .txt para leer
+    obtener = archLectura.read()  # Leer
+    archLectura.close()  # Cerrarlo
 
     # Como respuesta a petición, se envía lo leído en el .txt
     return obtener
@@ -136,15 +154,15 @@ def muestra_estados():  # Método para mostrar historial
 @app.route('/api/web-bot/mostrar/conocimientos')
 def muestra_memoria():  # Método para mostrar lo que hay en RAM
 
-    accion = "Mostrar conocimientos (RAM)" #Acción que se almacenará en log
+    accion = "Mostrar conocimientos (RAM)"  # Acción que se almacenará en log
     guardar(accion)
 
-    archEscritura = open('ram.txt', 'w') #Abrir archivo .txt para escribir
-    for cursor in db.memRam.find({}): #Recorrer lo que hay en ram
-        archEscritura.write(str(cursor) + " FIN \n") # Se escriben todos los datos del log en un archivo txt
+    archEscritura = open('ram.txt', 'w')  # Abrir archivo .txt para escribir
+    for cursor in baseDatos.RAM.find({}):  # Recorrer lo que hay en ram
+        archEscritura.write(str(cursor) + " FIN \n")  # Se escriben todos los datos del log en un archivo txt
 
-    archEscritura.close() #Cerrar archivo
-    archLectura = open('ram.txt', 'r') #Abrir archivo .txt para leer
+    archEscritura.close()  # Cerrar archivo
+    archLectura = open('ram.txt', 'r')  # Abrir archivo .txt para leer
     obtener = archLectura.read()
     archLectura.close()
 
@@ -152,23 +170,22 @@ def muestra_memoria():  # Método para mostrar lo que hay en RAM
     return obtener
 
 
-@app.route('/api/web-bot/desaprender', methods=['DELETE'])
+@app.route('/api/web-bot/olvidar', methods=['POST'])
 def borra():
     in_args = request.args
     ident = in_args['id']
 
-    db.memRam.remove(ObjectId(ident))
-    #db.memRam.remove(ObjectId(exit(ident)))
+    baseDatos.RAM.remove(ObjectId(ident))
 
     resp = Response('Eliminado', status=200, content_type='application/json')
 
-    # accion = "Desaprender "+ str(ObjectId())  #Acción que se almacenará en log
-    # guardar(accion)
+    accion = "Desaprender " + str(ObjectId())  # Acción que se almacenará en log
+    guardar(accion)
 
     return resp
 
 
-def guardar(accion):
+def guardar(accion):  # Método para guardar en log
     fecha = time.strftime("%c")  # Obtener fecha y hora en que se realizó la accion
     usuario = socket.gethostname()  # Obtener nombre de la máquina de usuario
 
@@ -177,7 +194,7 @@ def guardar(accion):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=8000, host='0.0.0.0')
 
 
 # {"tipo":"A","operacion":"suma","numeros": [1,2,3]}
