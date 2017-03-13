@@ -8,7 +8,7 @@ from RAMBOT import RAM
 from quickstart import main
 
 # Inicialización de Flask
-app = Flask(__name__)
+app = Flask(__name__)  # Instancia de Flask
 
 conexionMongo = MongoClient('127.0.0.1', 27017)  # Conectar con MongoDB (localhost, puerto)
 
@@ -34,36 +34,36 @@ def informacionGeneral(name):  # Muestra "datos personales" del web-bot
 
 @app.route('/api/web-bot/default', methods=['POST'])  # Ruta para lo que el bot sabe hacer
 def default():  # Lo que el bot hace por defecto desde que inicia
-    try:
-        tipoOperacion = request.json["tipo"]  # Seleccionar en el Json lo que contiene la clave tipo
-        # Tipo A es para sumas y multiplicaciones, B para restas y divisiones
 
-        operacion = request.json['operacion']  # Seleccionar en el Json lo que contiene la clave operación
+    tipoOperacion = request.json["tipo"]  # Seleccionar en el Json lo que contiene la clave tipo
+    # Tipo A es para sumas y multiplicaciones, B para restas y divisiones
 
-        # Tipo "A" es para operaciones con más de dos números (sumas y multiplicaciones)
-        if (tipoOperacion == "A"):
-            numeros = request.json['numeros']  # Seleccionar en el Json lo que contiene la clave numeros
-            if (operacion == "suma"):  # Si la operación es suma, ingresa al método de suma
-                total = suma(numeros)
-            if (operacion == "multiplica"):  # Si la operación es suma, ingresa al método de multiplica
-                total = multiplica(numeros)
+    operacion = request.json['operacion']  # Seleccionar en el Json lo que contiene la clave operación
 
-        # Tipo "B" es para operaciones  de dos números (restas y divisiones)
-        if (tipoOperacion == "B"):
-            num1 = request.json['num1']  # Seleccionar en el Json lo que contiene la clave num1
-            num2 = request.json['num2']  # Seleccionar en el Json lo que contiene la clave num2
-            if (operacion == "resta"):  # Si la operación es suma, ingresa al método de resta
-                total = resta(num1, num2)
-            if (operacion == "divide"):  # Si la operación es suma, ingresa al método de divide
-                total = divide(num1, num2)
+    # Tipo "A" es para operaciones con más de dos números (sumas y multiplicaciones)
+    if (tipoOperacion == "A"):
+        numeros = request.json['numeros']  # Seleccionar en el Json lo que contiene la clave numeros
+        if (operacion == "suma"):  # Si la operación es suma, ingresa al método de suma
+            total = suma(numeros)
+        if (operacion == "multiplica"):  # Si la operación es suma, ingresa al método de multiplica
+            total = multiplica(numeros)
 
-        operacion = {"Resultado ": total}  # Resultado
+    # Tipo "B" es para operaciones  de dos números (restas y divisiones)
+    if (tipoOperacion == "B"):
+        num1 = request.json['num1']  # Seleccionar en el Json lo que contiene la clave num1
+        num2 = request.json['num2']  # Seleccionar en el Json lo que contiene la clave num2
+        if (operacion == "resta"):  # Si la operación es suma, ingresa al método de resta
+            total = resta(num1, num2)
+        if (operacion == "divide"):  # Si la operación es suma, ingresa al método de divide
+            total = divide(num1, num2)
 
-    except Exception as e:  # Excepción en caso de que lo anterior no funcione
-        print("Imposible" % str(e))
+    operacion = {"Resultado ": total}  # Resultado
 
-    js = json.dumps(operacion)  # Codificar Json
-    resp = Response(js, content_type='application/json')
+    codificarJson = json.dumps(operacion)  # Codificar Json
+    resp = Response(codificarJson, content_type='application/json')
+
+    accion = "Operacion Default"  # Acción que se almacenará en log
+    guardar(accion)  # Va a método para  guardar en Log
 
     return resp
 
@@ -83,13 +83,19 @@ def multiplica(numeros):  # Método para multiplicar numeros recibidos anteriorm
 
 
 def resta(num1, num2):  # Método para restar dos numeros recibidos anteriormente
-    rest = num1 - num2
-    return rest
+    try:
+        rest = num1 - num2
+        return rest
+    except:
+        return "Imposible resolver"
 
 
 def divide(num1, num2):  # Método para dividir dos numeros recibidos anteriormente
-    div = num1 / num2
-    return div
+    try:
+        div = num1 / num2
+        return div
+    except:
+        return "Imposible resolver"
 
 
 @app.route('/api/web-bot/aprender', methods=['POST'])
@@ -98,7 +104,7 @@ def aprende():
     codigo = request.json["code"]  # Seleccionar en el Json lo que contiene la clave code
 
     resultado = {'He aprendido a ': action}  # Respuesta Json
-    codifica = json.dumps(resultado)  # codificar resultado para respuesta
+    codifica = json.dumps(resultado)  # Codificar resultado para respuesta
 
     resp = Response(codifica, status=200, content_type='application/json')  # Configuración de la respuesta
     resp.headers['Link'] = "www.GrootBot.com"
@@ -120,7 +126,7 @@ def aprende():
 
 @app.route('/api/web-bot/calendario', methods=['GET'])
 def calendarioGoogle():
-    exec(str(main()))
+    exec(str(main())) # Ejecutar quickstart (código de Google)
 
     archLectura = open('events.txt', 'r')  # Abrir archivo .txt para leer
     obtener = archLectura.read()  # Leer
@@ -172,12 +178,12 @@ def muestra_memoria():  # Método para mostrar lo que hay en RAM
 
 @app.route('/api/web-bot/olvidar', methods=['POST'])
 def borra():
-    in_args = request.args
-    ident = in_args['id']
+    in_args = request.args # Obtener los parámetros
+    ident = in_args['id'] # Seleccionar el parámetro que contenga la clave ID
 
-    baseDatos.RAM.remove(ObjectId(ident))
+    baseDatos.RAM.remove(ObjectId(ident))  # Borrar con remove el documento con el ID recibido (es un Object_Id)
 
-    resp = Response('Eliminado', status=200, content_type='application/json')
+    resp = Response('Eliminado', status=200, content_type='application/json') # Respuesta
 
     accion = "Desaprender " + str(ObjectId())  # Acción que se almacenará en log
     guardar(accion)
@@ -193,10 +199,22 @@ def guardar(accion):  # Método para guardar en log
     log.insert(guardarLog)  # Insertar datos de historial en el LOG
 
 
+# Manejo de errores Flask
+@app.errorhandler(404)
+def page_not_found(error):
+    return 'No es posible resolver la petición, revise el URL', 404
+
+
+@app.errorhandler(500)
+def special_exception_handler(error):
+    return 'No es posible resolver la petición', 500
+
+
 if __name__ == '__main__':
     app.run(port=8000, host='0.0.0.0')
 
 
+#Para Postman (Ejemplos)
 # {"tipo":"A","operacion":"suma","numeros": [1,2,3]}
 # {"tipo":"B","operacion":"resta","num1": 8, "num2": 2}
 

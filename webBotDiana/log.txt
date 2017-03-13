@@ -1,2 +1,7 @@
-{'_id': ObjectId('58c57d924fa9910a2892b3e5'), 'Accion': 'Aprender cocinar', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 10:55:46 2017'} FIN 
-{'_id': ObjectId('58c57d984fa9910a2892b3e7'), 'Accion': 'Mostrar estados (LOG)', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 10:55:52 2017'} FIN 
+{'_id': ObjectId('58c5f4bb4fa9912318a212dc'), 'Accion': 'Aprender cocinar', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:11 2017'} FIN 
+{'_id': ObjectId('58c5f4c24fa9912318a212de'), 'Accion': 'Aprender bailar', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:18 2017'} FIN 
+{'_id': ObjectId('58c5f4cc4fa9912318a212e0'), 'Accion': 'Mostrar conocimientos (RAM)', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:28 2017'} FIN 
+{'_id': ObjectId('58c5f4d04fa9912318a212e1'), 'Accion': 'Mostrar estados (LOG)', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:32 2017'} FIN 
+{'_id': ObjectId('58c5f4e34fa9912318a212e2'), 'Accion': 'Uso de API ', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:51 2017'} FIN 
+{'_id': ObjectId('58c5f4e84fa9912318a212e3'), 'Accion': 'Operacion Default', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:56 2017'} FIN 
+{'_id': ObjectId('58c5f4eb4fa9912318a212e4'), 'Accion': 'Mostrar estados (LOG)', 'por: ': 'DIANA', 'fecha: ': 'Sun Mar 12 19:24:59 2017'} FIN 
